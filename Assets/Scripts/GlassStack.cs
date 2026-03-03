@@ -49,7 +49,7 @@ public class GlassStack : MonoBehaviour
         DraggableGlass glass    = glassObj.GetComponent<DraggableGlass>();
 
         if (glass != null)
-            glass.StartDrag();
+            glass.BeginDrag();
         else
             Debug.LogError("[GlassStack] Le prefab Glass n'a pas de composant DraggableGlass.", glassObj);
     }

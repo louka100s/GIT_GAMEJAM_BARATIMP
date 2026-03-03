@@ -131,8 +131,8 @@ Transform:
   m_GameObject: {fileID: 3584828160651178197}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.8, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalScale: {x: 2, y: 1.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7661920402816856433}
@@ -189,7 +189,10 @@ MonoBehaviour:
   spriteContent: {fileID: 21300000, guid: 42c87af059cf6f44a989f1a3aa49ebe1, type: 3}
   spritePasContent: {fileID: 21300000, guid: d5f76944d4bef2b4fbfb4e8b1c0134ef, type: 3}
   spriteScale: 1
-  maxPatience: 15
+  basePatience: 20
+  minPatience: 12
+  minFillAccepted: 0.9
+  maxFillAccepted: 1
   patienceBarFill: {fileID: 7185815745932155907}
   patienceBarBg: {fileID: 3701510195365360494}
   slotIndex: -1

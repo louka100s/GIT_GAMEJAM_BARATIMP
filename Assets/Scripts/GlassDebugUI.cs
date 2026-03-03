@@ -19,7 +19,7 @@ public class GlassDebugUI : MonoBehaviour
 
     private void Update()
     {
-        DraggableGlass glass = DraggableGlass.CurrentDragged;
+        DraggableGlass glass = DraggableGlass.All.Find(g => g.IsDragging);
 
         if (glass == null)
         {
@@ -27,8 +27,8 @@ public class GlassDebugUI : MonoBehaviour
             return;
         }
 
-        string beer    = string.IsNullOrEmpty(glass.beerType) ? "vide" : glass.beerType;
-        int    percent = Mathf.RoundToInt(glass.fillLevel * 100f);
+        string beer    = string.IsNullOrEmpty(glass.BeerType) ? "vide" : glass.BeerType;
+        int    percent = Mathf.RoundToInt(glass.FillLevel * 100f);
 
         _label.text = $"Bière : <b>{beer}</b>\nRemplissage : <b>{percent}%</b>";
     }

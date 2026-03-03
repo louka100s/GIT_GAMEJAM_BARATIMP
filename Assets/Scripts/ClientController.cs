@@ -12,10 +12,23 @@ public class ClientController : MonoBehaviour
     [Tooltip("Scale appliqué au root du prefab au spawn. Ajustable par personnage.")]
     [SerializeField] private float spriteScale = 1f;
 
-    [Header("Patience — NE PAS TOUCHER, déjà fonctionnel")]
-    public float maxPatience = 15f;
+    [Header("Patience")]
+    [Tooltip("Patience de base de ce type de client (secondes).")]
+    public float basePatience = 20f;
+    [Tooltip("Patience minimale plancher pour ce type de client (secondes).")]
+    public float minPatience  = 12f;
+
+    [Header("Qualité de la bière acceptée")]
+    [Tooltip("Remplissage minimum pour que le client accepte la bière (ex : 0.8 = 80 %).")]
+    [Range(0f, 1f)] public float minFillAccepted = 0.8f;
+    [Tooltip("Remplissage maximum pour que le client accepte la bière (ex : 1.0 = 100 %).")]
+    [Range(0f, 1.2f)] public float maxFillAccepted = 1.0f;
+
+    private float maxPatience;
     private float currentPatience;
-    private bool isActive = true;
+    private bool  isActive         = true;
+    private bool  _shownUnsatisfied = false;
+
     public SpriteRenderer patienceBarFill;
     public SpriteRenderer patienceBarBg;
 
@@ -24,7 +37,7 @@ public class ClientController : MonoBehaviour
     private List<string> orderedBeers = new List<string>();
     private int servedCount = 0;
 
-    private string[] beerTypes = { "blonde", "rousse", "brune" };
+    private static readonly string[] beerTypes = { "blonde", "rousse", "brune" };
 
     // ── Commande ────────────────────────────────────────────────────────
 
@@ -47,7 +60,10 @@ public class ClientController : MonoBehaviour
         transform.localScale = Vector3.one * scale;
     }
 
-    /// <summary>Liste ordonnée des bières demandées (lecture seule pour OrderBubble).</summary>
+    /// <summary>Vrai si le remplissage du verre est dans la plage acceptée par ce client.</summary>
+    public bool AcceptsFill(float fill) => fill >= minFillAccepted && fill <= maxFillAccepted;
+
+    /// <summary>Liste ordonnée des bières demandées.</summary>
     public List<string> GetOrderedBeers() => orderedBeers;
 
     /// <summary>Nombre de bières déjà servies.</summary>
@@ -65,13 +81,11 @@ public class ClientController : MonoBehaviour
 
         if (beerType == orderedBeers[servedCount])
         {
-            OrderBubble.Instance.MarkIconServed(servedCount);
             servedCount++;
 
             if (servedCount >= orderedBeers.Count)
             {
                 characterRenderer.sprite = spriteContent;
-                OrderBubble.Instance.Hide();
                 return "complete";
             }
             return "correct";
@@ -79,15 +93,11 @@ public class ClientController : MonoBehaviour
         else
         {
             characterRenderer.sprite = spritePasContent;
-            OrderBubble.Instance.Hide();
             return "wrong";
         }
     }
 
-    public void ShowUnsatisfied()
-    {
-        characterRenderer.sprite = spritePasContent;
-    }
+    public void ShowUnsatisfied() => characterRenderer.sprite = spritePasContent;
 
     public int GetRemainingBeers() => orderedBeers.Count - servedCount;
 
@@ -105,6 +115,7 @@ public class ClientController : MonoBehaviour
         currentPatience -= Time.deltaTime;
         float ratio = Mathf.Clamp01(currentPatience / maxPatience);
 
+        // Barre de patience
         Vector3 s = patienceBarFill.transform.localScale;
         s.x = ratio;
         patienceBarFill.transform.localScale = s;
@@ -116,17 +127,27 @@ public class ClientController : MonoBehaviour
         else
             patienceBarFill.color = Color.red;
 
+        // Sprite mécontent à 70% de patience écoulée (30% restant)
+        if (!_shownUnsatisfied && ratio <= 0.3f)
+        {
+            _shownUnsatisfied = true;
+            ShowUnsatisfied();
+        }
+
+        // Timeout : passe derrière les autres clients et part
         if (currentPatience <= 0f)
         {
             isActive = false;
-            ShowUnsatisfied();
-            OrderBubble.Instance.Hide();
-            GameManager.Instance.ClientTimeout();
+
+            foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>())
+                sr.sortingOrder = -10;
+
             ClientQueueManager.Instance.RemoveServedClient(this);
+            GameManager.Instance.ClientTimeout();
         }
     }
 
-    /// <summary>Réinitialise la patience.</summary>
+    /// <summary>Applique la patience calculée par ClientQueueManager.</summary>
     public void SetPatience(float value)
     {
         maxPatience     = value;

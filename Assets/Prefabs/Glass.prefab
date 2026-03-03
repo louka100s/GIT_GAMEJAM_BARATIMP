@@ -9,11 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 559422851447241415}
-  - component: {fileID: 2002453002478194195}
-  - component: {fileID: 7547763601679383891}
-  - component: {fileID: 5483986788411987819}
-  - component: {fileID: 3228136379017823809}
   - component: {fileID: 8761655732290533153}
+  - component: {fileID: 6767926334716590188}
+  - component: {fileID: 6166453447000385011}
+  - component: {fileID: 175431841886363275}
   m_Layer: 0
   m_Name: Glass
   m_TagString: Untagged
@@ -36,51 +35,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2002453002478194195
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 752190903898354723}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &7547763601679383891
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 752190903898354723}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &5483986788411987819
-MeshRenderer:
+--- !u!114 &8761655732290533153
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 752190903898354723}
   m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d9fe4f374a133b4e9b047fe6cb05ce2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DraggableGlass
+  emptySprite: {fileID: 21300000, guid: b2d057c239b8453429524d68966d6cca, type: 3}
+  melangeSprite: {fileID: 21300000, guid: 820b25e6734a6394088f971b857d8ac1, type: 3}
+  beerSprites:
+  - beerType: blonde
+    partial: {fileID: 21300000, guid: deefbd3717428874ea55b05ad8e16b67, type: 3}
+    full: {fileID: 21300000, guid: ee4db70b51ddd904ca800302dd26b96e, type: 3}
+    overflow: {fileID: 21300000, guid: 9e3bf0aa4f40f804ab0cc2f0a9f5920e, type: 3}
+  - beerType: rousse
+    partial: {fileID: 21300000, guid: 3f77dd925b4b210429aa20cbb6466ecc, type: 3}
+    full: {fileID: 21300000, guid: a16fd91e80eb846449a5dc8c3022d288, type: 3}
+    overflow: {fileID: 21300000, guid: 435d752e07512fa4c8143820c0ff975e, type: 3}
+  - beerType: brune
+    partial: {fileID: 21300000, guid: 2618a3be2537308429b1ac5fe1655a88, type: 3}
+    full: {fileID: 21300000, guid: a4b5a9ef76160d04a8ae37876268f79d, type: 3}
+    overflow: {fileID: 21300000, guid: 698a925ad143f8a498dccddb5892a585, type: 3}
+  dragPlaneY: 0.6
+  pickupScreenRadius: 60
+  _beerType: 
+  _fillLevel: 0
+--- !u!212 &6767926334716590188
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 752190903898354723}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
+  m_RayTracingMode: 0
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
@@ -90,7 +92,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: eab6b0764d36ce543bbb39c051b0e1cf, type: 2}
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -99,11 +101,11 @@ MeshRenderer:
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
   m_ReceiveGI: 1
-  m_PreserveUVs: 1
+  m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 0
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -113,8 +115,17 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!54 &3228136379017823809
+  m_Sprite: {fileID: 21300000, guid: b2d057c239b8453429524d68966d6cca, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.85}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1.97, y: 2.06}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_SpriteSortPoint: 0
+--- !u!54 &6166453447000385011
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -141,20 +152,24 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &8761655732290533153
-MonoBehaviour:
+--- !u!65 &175431841886363275
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 752190903898354723}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d9fe4f374a133b4e9b047fe6cb05ce2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DraggableGlass
-  dragPlaneDistance: 7.5
-  _beerType: 
-  _fillLevel: 0
-  _isFilled: 0
-  _isDragging: 0
+  serializedVersion: 3
+  m_Size: {x: 0.35, y: 0.35, z: 0.35}
+  m_Center: {x: 0, y: 0, z: 0}
