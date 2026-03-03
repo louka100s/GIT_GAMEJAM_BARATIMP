@@ -2,12 +2,36 @@ using UnityEngine;
 
 /// <summary>
 /// Affiche un gizmo éditeur sur chaque tireuse (BoxCollider trigger).
-/// Ne fait rien au runtime.
+/// Expose baseColor pour contrôler la couleur et l'opacité du cube dans la scène.
+/// Ne fait rien au runtime sauf appliquer la couleur.
 /// </summary>
 public class TapGizmo : MonoBehaviour
 {
+    [Header("Gizmo Éditeur")]
     public Color  gizmoColor = Color.yellow;
     public string tapName    = "Tireuse";
+
+    [Header("Couleur de base (opacité ajustable)")]
+    [ColorUsage(showAlpha: true)]
+    public Color baseColor = new Color(1f, 1f, 1f, 0.4f);
+
+    private MaterialPropertyBlock _mpb;
+    private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
+
+    private void Awake()       => ApplyColor();
+    private void OnValidate()  => ApplyColor();
+
+    /// <summary>Applique baseColor au MeshRenderer via MaterialPropertyBlock (pas d'effet sur le matériau partagé).</summary>
+    private void ApplyColor()
+    {
+        MeshRenderer mr = GetComponent<MeshRenderer>();
+        if (mr == null) return;
+
+        if (_mpb == null) _mpb = new MaterialPropertyBlock();
+        mr.GetPropertyBlock(_mpb);
+        _mpb.SetColor(BaseColorID, baseColor);
+        mr.SetPropertyBlock(_mpb);
+    }
 
 #if UNITY_EDITOR
     private void OnDrawGizmos()
@@ -38,3 +62,4 @@ public class TapGizmo : MonoBehaviour
     }
 #endif
 }
+

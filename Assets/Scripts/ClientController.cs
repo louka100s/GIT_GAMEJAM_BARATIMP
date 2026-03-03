@@ -8,14 +8,9 @@ public class ClientController : MonoBehaviour
     public Sprite spriteContent;
     public Sprite spritePasContent;
 
-    [Header("Order Bubble")]
-    public SpriteRenderer bubbleBackground;   // le sprite "bulle"
-    public Transform iconsParent;              // parent vide qui contient les icônes de commande
-
-    [Header("Beer Icons Prefabs")]
-    public GameObject iconBlondePrefab;
-    public GameObject iconRoussePrefab;
-    public GameObject iconBrunePrefab;
+    [Header("Taille du sprite")]
+    [Tooltip("Scale appliqué au root du prefab au spawn. Ajustable par personnage.")]
+    [SerializeField] private float spriteScale = 1f;
 
     [Header("Patience — NE PAS TOUCHER, déjà fonctionnel")]
     public float maxPatience = 15f;
@@ -26,71 +21,43 @@ public class ClientController : MonoBehaviour
 
     [HideInInspector] public int slotIndex = -1;
 
-    // commande : liste ordonnée de bières à servir
     private List<string> orderedBeers = new List<string>();
-    private List<GameObject> orderIcons = new List<GameObject>();
     private int servedCount = 0;
 
     private string[] beerTypes = { "blonde", "rousse", "brune" };
 
+    // ── Commande ────────────────────────────────────────────────────────
+
     public void InitializeOrder(int beerCount)
     {
-        // beerCount = 1, 2 ou 3 selon la progression
         orderedBeers.Clear();
         servedCount = 0;
 
         for (int i = 0; i < beerCount; i++)
-        {
             orderedBeers.Add(beerTypes[Random.Range(0, beerTypes.Length)]);
-        }
 
-        // affiche le sprite neutre (content par défaut)
         characterRenderer.sprite = spriteContent;
-
-        BuildBubbleIcons();
+        transform.localScale     = Vector3.one * spriteScale;
     }
 
-    private void BuildBubbleIcons()
+    /// <summary>Override du scale depuis ClientQueueManager (paramètre global).</summary>
+    public void SetSpriteScale(float scale)
     {
-        // nettoie les anciennes icônes
-        foreach (var icon in orderIcons)
-        {
-            if (icon != null) Destroy(icon);
-        }
-        orderIcons.Clear();
-
-        // active la bulle
-        bubbleBackground.gameObject.SetActive(true);
-
-        // place les icônes dans la bulle, espacées horizontalement
-        float spacing = 0.35f;
-        float startX = -((orderedBeers.Count - 1) * spacing) / 2f;
-
-        for (int i = 0; i < orderedBeers.Count; i++)
-        {
-            GameObject prefab = null;
-            switch (orderedBeers[i])
-            {
-                case "blonde": prefab = iconBlondePrefab; break;
-                case "rousse": prefab = iconRoussePrefab; break;
-                case "brune":  prefab = iconBrunePrefab;  break;
-            }
-
-            if (prefab != null)
-            {
-                GameObject icon = Instantiate(prefab, iconsParent);
-                icon.transform.localPosition = new Vector3(startX + i * spacing, 0f, 0f);
-                icon.transform.localScale = Vector3.one * 0.4f;
-                orderIcons.Add(icon);
-            }
-        }
+        spriteScale          = scale;
+        transform.localScale = Vector3.one * scale;
     }
+
+    /// <summary>Liste ordonnée des bières demandées (lecture seule pour OrderBubble).</summary>
+    public List<string> GetOrderedBeers() => orderedBeers;
+
+    /// <summary>Nombre de bières déjà servies.</summary>
+    public int GetServedCount() => servedCount;
 
     /// <summary>
     /// Appelé quand le barman sert une bière. Retourne :
-    /// "correct" si la bière correspond à la prochaine commande,
-    /// "wrong" si mauvaise bière,
-    /// "complete" si c'était la dernière bière et tout est correct.
+    /// "correct"  — bière juste, il en reste encore,
+    /// "complete" — dernière bière, commande terminée,
+    /// "wrong"    — mauvaise bière.
     /// </summary>
     public string ReceiveBeer(string beerType)
     {
@@ -98,28 +65,21 @@ public class ClientController : MonoBehaviour
 
         if (beerType == orderedBeers[servedCount])
         {
-            // bonne bière, grise l'icône correspondante
-            if (servedCount < orderIcons.Count)
-            {
-                SpriteRenderer sr = orderIcons[servedCount].GetComponent<SpriteRenderer>();
-                if (sr != null) sr.color = new Color(1f, 1f, 1f, 0.3f);
-            }
-
+            OrderBubble.Instance.MarkIconServed(servedCount);
             servedCount++;
 
             if (servedCount >= orderedBeers.Count)
             {
-                // commande complète
                 characterRenderer.sprite = spriteContent;
-                bubbleBackground.gameObject.SetActive(false);
+                OrderBubble.Instance.Hide();
                 return "complete";
             }
             return "correct";
         }
         else
         {
-            // mauvaise bière
             characterRenderer.sprite = spritePasContent;
+            OrderBubble.Instance.Hide();
             return "wrong";
         }
     }
@@ -129,19 +89,16 @@ public class ClientController : MonoBehaviour
         characterRenderer.sprite = spritePasContent;
     }
 
-    public int GetRemainingBeers()
-    {
-        return orderedBeers.Count - servedCount;
-    }
+    public int GetRemainingBeers() => orderedBeers.Count - servedCount;
 
-    // ============ PATIENCE (existant, ne pas modifier) ============
+    // ── Patience ────────────────────────────────────────────────────────
 
-    void Start()
+    private void Start()
     {
         currentPatience = maxPatience;
     }
 
-    void Update()
+    private void Update()
     {
         if (!isActive) return;
 
@@ -163,17 +120,20 @@ public class ClientController : MonoBehaviour
         {
             isActive = false;
             ShowUnsatisfied();
+            OrderBubble.Instance.Hide();
             GameManager.Instance.ClientTimeout();
             ClientQueueManager.Instance.RemoveServedClient(this);
         }
     }
 
+    /// <summary>Réinitialise la patience.</summary>
     public void SetPatience(float value)
     {
-        maxPatience = value;
+        maxPatience     = value;
         currentPatience = value;
     }
 
+    /// <summary>Stoppe la patience (client servi ou parti).</summary>
     public void Deactivate()
     {
         isActive = false;
