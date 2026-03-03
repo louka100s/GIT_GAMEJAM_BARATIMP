@@ -12,23 +12,33 @@ public class DraggableGlass : MonoBehaviour
     // ── Singleton du verre en cours de drag (pour l'UI debug) ───────────
     public static DraggableGlass CurrentDragged { get; private set; }
 
-    // ── Données exposées ────────────────────────────────────────────────
-    [HideInInspector] public string beerType  = string.Empty;
-    [HideInInspector] public float  fillLevel = 0f;
-    [HideInInspector] public bool   isFilled  = false;
-
     // ── Configuration ───────────────────────────────────────────────────
-    [SerializeField] private float dragPlaneDistance = 5f;
+    [Header("Drag")]
+    [Tooltip("Hauteur Y du plan horizontal sur lequel le verre glisse (hauteur du comptoir).")]
+    [SerializeField, Range(0f, 5f)] private float dragHeight = 1f;
+
+    // ── Runtime (visible en Inspector) ───────────────────────────────────
+    [Header("Runtime — État du verre")]
+    [SerializeField, ReadOnly] private string _beerType  = string.Empty;
+    [SerializeField, ReadOnly] private float  _fillLevel = 0f;
+    [SerializeField, ReadOnly] private bool   _isFilled  = false;
+    [SerializeField, ReadOnly] private bool   _isDragging;
+
+    // ── Accesseurs publics ───────────────────────────────────────────────
+    public string beerType  { get => _beerType;  set => _beerType  = value; }
+    public float  fillLevel { get => _fillLevel; set => _fillLevel = value; }
+    public bool   isFilled  { get => _isFilled;  set => _isFilled  = value; }
 
     // ── Privé ───────────────────────────────────────────────────────────
-    private bool      _isDragging;
     private Camera    _mainCamera;
     private Rigidbody _rigidbody;
+    private Vector3   _originalScale;   // initialisé en Awake, utilisé par le juice (prompt 8)
 
     private void Awake()
     {
-        _mainCamera = Camera.main;
-        _rigidbody  = GetComponent<Rigidbody>();
+        _mainCamera    = Camera.main;
+        _rigidbody     = GetComponent<Rigidbody>();
+        _originalScale = transform.localScale;
 
         _rigidbody.isKinematic = true;
     }
@@ -42,7 +52,7 @@ public class DraggableGlass : MonoBehaviour
         FollowMouse();
 
         if (Mouse.current.leftButton.wasReleasedThisFrame)
-            StopDrag();
+            OnMouseUp();
     }
 
     // ── Méthodes publiques ──────────────────────────────────────────────
@@ -54,11 +64,67 @@ public class DraggableGlass : MonoBehaviour
         CurrentDragged = this;
     }
 
-    /// <summary>Arrête le drag et dépose le verre à sa position actuelle.</summary>
+    /// <summary>Arrête le drag sans service (ex : abandon, pickup depuis GlassStack).</summary>
     public void StopDrag()
     {
         _isDragging    = false;
         CurrentDragged = null;
+    }
+
+    // ── Méthodes privées ────────────────────────────────────────────────
+
+    /// <summary>Appelé au relâchement de la souris. Gère la dépose et le service multi-bières.</summary>
+    private void OnMouseUp()
+    {
+        _isDragging = false;
+        transform.localScale = _originalScale;
+        transform.rotation   = Quaternion.identity;
+        CurrentDragged       = null;
+
+        if (!_isFilled)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Collider[] hits  = Physics.OverlapSphere(transform.position, 0.5f);
+        bool       served = false;
+
+        foreach (var hit in hits)
+        {
+            if (hit.CompareTag("ServiceZone"))
+            {
+                ClientController client = ClientQueueManager.Instance.GetServableClient();
+                if (client != null)
+                {
+                    string result = client.ReceiveBeer(_beerType);
+
+                    if (result == "complete")
+                    {
+                        // commande finie, le client a tout reçu
+                        GameManager.Instance.ServeBeerSuccess();
+                        client.Deactivate();
+                        ClientQueueManager.Instance.RemoveServedClient(client);
+                    }
+                    else if (result == "correct")
+                    {
+                        // bonne bière mais il en veut encore — le client reste
+                        // pas de paiement partiel, on paye à la fin
+                    }
+                    else // "wrong"
+                    {
+                        // mauvaise bière, client mécontent, il part
+                        GameManager.Instance.ServeBeerFail();
+                        client.Deactivate();
+                        ClientQueueManager.Instance.RemoveServedClient(client);
+                    }
+                    served = true;
+                }
+                break;
+            }
+        }
+
+        Destroy(gameObject);
     }
 
     private void OnDestroy()
@@ -83,8 +149,9 @@ public class DraggableGlass : MonoBehaviour
 
     private void FollowMouse()
     {
-        Vector3 screenPos   = Mouse.current.position.ReadValue();
-        screenPos.z         = dragPlaneDistance;
-        transform.position  = _mainCamera.ScreenToWorldPoint(screenPos);
+        Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Plane dragPlane = new Plane(Vector3.up, Vector3.up * dragHeight);
+        if (dragPlane.Raycast(ray, out float distance))
+            transform.position = ray.GetPoint(distance);
     }
 }

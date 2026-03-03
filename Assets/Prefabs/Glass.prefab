@@ -153,7 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d9fe4f374a133b4e9b047fe6cb05ce2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DraggableGlass
-  beerType: 
-  fillLevel: 0
-  isFilled: 0
   dragPlaneDistance: 7.5
+  _beerType: 
+  _fillLevel: 0
+  _isFilled: 0
+  _isDragging: 0

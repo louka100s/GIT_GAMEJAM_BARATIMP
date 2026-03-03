@@ -10,8 +10,9 @@ using UnityEngine.InputSystem;
 public class GlassStack : MonoBehaviour
 {
     // ── Configuration ───────────────────────────────────────────────────
+    [Header("Références")]
+    [Tooltip("Prefab du verre à instancier au clic.")]
     [SerializeField] private GameObject glassPrefab;
-    [SerializeField] private float      dragPlaneDistance = 5f;
 
     // ── Privé ───────────────────────────────────────────────────────────
     private Camera _mainCamera;
@@ -43,12 +44,9 @@ public class GlassStack : MonoBehaviour
             return;
         }
 
-        Vector3 spawnScreenPos   = Mouse.current.position.ReadValue();
-        spawnScreenPos.z         = dragPlaneDistance;
-        Vector3 spawnWorldPos    = _mainCamera.ScreenToWorldPoint(spawnScreenPos);
-
-        GameObject    glassObj = Instantiate(glassPrefab, spawnWorldPos, Quaternion.identity);
-        DraggableGlass glass   = glassObj.GetComponent<DraggableGlass>();
+        // Spawn à la position du GlassStack — le drag horizontal prend le relais immédiatement
+        GameObject     glassObj = Instantiate(glassPrefab, transform.position, Quaternion.identity);
+        DraggableGlass glass    = glassObj.GetComponent<DraggableGlass>();
 
         if (glass != null)
             glass.StartDrag();

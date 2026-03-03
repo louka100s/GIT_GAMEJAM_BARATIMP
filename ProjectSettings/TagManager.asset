@@ -7,6 +7,10 @@ TagManager:
   - Tap_Blonde
   - Tap_Brune
   - Tap_Ambree
+  - ServiceZone
+  - blonde
+  - rousse
+  - brune
   layers:
   - Default
   - TransparentFX
