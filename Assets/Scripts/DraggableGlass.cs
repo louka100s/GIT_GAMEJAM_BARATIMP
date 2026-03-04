@@ -79,6 +79,7 @@ public class DraggableGlass : MonoBehaviour
     private Camera         _cam;
     private SpriteRenderer _sr;
     private Rigidbody      _rb;
+    private float          _dragY; // hauteur Y capturée au début du drag
 
     // ── Unity ────────────────────────────────────────────────────────────
 
@@ -126,6 +127,7 @@ public class DraggableGlass : MonoBehaviour
     /// <summary>Démarre le drag depuis GlassStack ou re-pick depuis tireuse.</summary>
     public void BeginDrag()
     {
+        _dragY      = transform.position.y; // verrouille la hauteur actuelle du verre
         _state      = GlassState.Dragging;
         _snappedTap = null;
         _hoveredTap = null;
@@ -224,7 +226,7 @@ public class DraggableGlass : MonoBehaviour
     private void FollowMouse()
     {
         Ray   ray   = _cam.ScreenPointToRay(Mouse.current.position.ReadValue());
-        Plane plane = new Plane(Vector3.up, Vector3.up * dragPlaneY);
+        Plane plane = new Plane(Vector3.up, new Vector3(0f, _dragY, 0f));
         if (plane.Raycast(ray, out float dist))
             _rb.MovePosition(ray.GetPoint(dist));
     }
